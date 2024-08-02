@@ -1,3 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Editor Style */
+.ck.ck-editor__main>.ck-editor__editable {
+ padding-left: 25px;
+ padding-right: 25px;
+}
+
+.dark .ck.ck-editor__main>.ck-editor__editable {
+ background-color: rgb(17 24 39);
+ color: white;
+}
+
+.ck.ck-word-count {
+ display: inline-flex;
+}
+
+.ck-word-count__words {
+ margin-right: 10px;
+}
+/* End Editor Style */
+
+/* Custom css */
+.scrollbar {
+ overflow-y: auto;
+ margin-bottom: 15px;
+}
+/* Style Bar Desktop*/
+#scrolbar-none::-webkit-scrollbar {
+ width: 0px;
+}
+/* Style Bar Desktop*/
+#style-scrolbar::-webkit-scrollbar-track {
+ border-radius: 2px;
+ --tw-text-opacity: 1;
+ background-color: rgba(209, 213, 219, var(--tw-text-opacity));
+}
+#style-scrolbar::-webkit-scrollbar {
+ width: 8px;
+ background-color: #f5f5f5;
+}
+#style-scrolbar::-webkit-scrollbar-thumb {
+ border-radius: 8px;
+ --tw-bg-opacity: 1;
+ background-color: rgb(124 58 237);
+}
+
+/* Style Bar Phone*/
+@media screen and (max-width: 767px) {
+ #style-scrolbar::-webkit-scrollbar-track {
+  border-radius: 2px;
+  background-color: #f5f5f5;
+ }
+ #style-scrolbar::-webkit-scrollbar {
+  width: 4px;
+  background-color: #f5f5f5;
+ }
+ #style-scrolbar::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(124 58 237);
+ }
+}
+/* End Custom css */

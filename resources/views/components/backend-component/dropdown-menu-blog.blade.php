@@ -1,6 +1,6 @@
 <ul>
  <li
-  class="relative justify-center items-center px-6 pt-2 mx-2 my-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-900"
+  class="relative justify-center items-center px-6 pt-2 mx-2 my-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-900"
   x-data="{ postMenuOpen : false }">
   <span id="post"
    class="{{ request()->is('blog/*') ? '' : 'hidden' }} absolute inset-y-0 left-0 w-1 bg-violet-600 rounded-tr-lg rounded-br-lg"
@@ -19,7 +19,7 @@
     <span class="ml-4">Blog</span>
    </span>
    <svg x-show="postMenuOpen" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-    class="bi bi-caret-down" viewBox="0 0 16 16">
+    class="bi bi-caret-down" viewBox="0 0 16 16" style="display: none;">
     <path
      d="M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659z" />
    </svg>
@@ -29,9 +29,9 @@
      d="M10 12.796V3.204L4.519 8 10 12.796zm-.659.753-5.48-4.796a1 1 0 0 1 0-1.506l5.48-4.796A1 1 0 0 1 11 3.204v9.592a1 1 0 0 1-1.659.753z" />
    </svg>
   </button>
-  <div x-show="postMenuOpen" x-transition class="from-left">
+  <div x-show="postMenuOpen" x-transition class="from-left" style="display: none;">
    <ul
-    class="p-2 mt-2 space-y-2 overflow-hidden text-sm font-medium rounded-md shadow-inner bg-gray-200 text-violet-700 dark:text-violet-400 dark:bg-gray-900"
+    class="p-2 mt-2 space-y-2 overflow-hidden text-sm font-medium rounded-md bg-gray-200 text-violet-700 dark:text-violet-400 dark:bg-gray-900"
     aria-label="submenu">
     <li class="px-2 py-1 transition-colors duration-150 hover:text-violet-400 dark:hover:text-violet-700">
      <a class="inline-flex w-full items-center" href="/blog/new-post" wire:navigate>

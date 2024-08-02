@@ -29,7 +29,7 @@ class User extends Authenticatable
             return "https://ui-avatars.com/api/?name=" . urlencode(auth()->user()->name) . "&background=7c3aed&color=fff";
         }
 
-        return asset('images/avatars/' .$this->avatar);
+        return asset('storage/images/avatar/' . $this->avatar);
     }
 
     /**

@@ -15,19 +15,31 @@
 </head>
 
 <body class="font-sans antialiased transition-colors duration-700">
- <div x-data="{ openSide: true }" class="flex h-screen bg-gray-100 dark:bg-gray-900 transition duration-700">
-  <livewire:layout.menu-desktop />
-
-  <div x-data="{ open: false }" class="flex flex-col flex-1 w-full">
+ <div class="flex h-screen bg-gray-200 dark:bg-gray-900">
+  <div x-data :class="$store.openSide && 'block'">
+   <!-- Sidebar Destop-->
+   <livewire:layout.menu-desktop />
+  </div>
+  <div class="flex flex-col flex-1 w-full" x-data="{open: false}">
    <!-- Header -->
    <livewire:layout.header />
+   <!-- Menu Mobile-->
    <livewire:layout.menu-mobile />
    <!-- Page Content -->
-   <main class="h-full overflow-y-auto">
+   <main id="style-scrolbar" class="h-full overflow-y-auto">
     {{ $slot }}
    </main>
+   <!-- Toaster start -->
+   @if (session()->has('success'))
+   <x-backend-component.toaster-success />
+   @endif
+   @if (session()->has('error'))
+   <x-backend-component.toaster-error />
+   @endif
+   <!-- Toaster End -->
   </div>
  </div>
+ @stack('scripts')
 </body>
 
 </html>

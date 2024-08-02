@@ -38,7 +38,7 @@
    <div class="mx-auto py-1 sm:py-4 sm:px-4 lg:px-8">
     <div class="grid grid-cols-1 gap-6">
      <!-- Table -->
-      
+
      <!-- EndTable -->
     </div>
    </div>

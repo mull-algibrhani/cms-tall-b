@@ -27,19 +27,6 @@ new class extends Component
     <!-- Hamburger Menu Mobile -->
     <x-backend-component.toggle-menu-mobile />
     <!-- End Hamburger Menu Mobile -->
-
-    <!-- Navigation Links Dashboard -->
-    <!-- <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-      {{ __('Dashboard') }}
-     </x-nav-link>
-    </div>
-    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
-      {{ __('Dashboard 2') }}
-     </x-nav-link>
-    </div> -->
-    <!-- End Navigation Links Dashboard -->
    </div>
 
    <ul class="pl-4 flex items-center justify-center flex-shrink-0 space-x-5 md:space-x-4 lg:space-x-8">

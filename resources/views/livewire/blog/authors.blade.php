@@ -1,50 +1,172 @@
+@assets
+<script src="https://cdn.ckeditor.com/ckeditor5/35.3.2/super-build/ckeditor.js"></script>
+<style>
+  .ck-editor__editable[role="textbox"] {
+    /* editing area */
+    min-height: 200px;
+  }
+</style>
+@endassets
+
 <x-slot name="title">
- {{ __('Authors') }}
+  {{ __('Add Authors') }}
 </x-slot>
-<div class="md:container px-6 py-2 sm:px-3 mx-auto grid">
- <!-- Heading -->
- <x-backend-component.heading>
-  {{ __('Authors') }}
- </x-backend-component.heading>
- <!-- End Heading -->
- <div class="bottom-up">
-  <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl rounded-lg">
-   <div class="grid grid-cols-2">
-    <div class="flex justify-start">
-     <div class="relative w-full lg:w-3/4 my-2 px-2">
-      <input wire:model.live="search" type="text" placeholder="Search"
-       class="transition-color block w-full max-w-[16rem] rounded-[10px] border-1 border-violet-600 dark:border-none dark:bg-gray-900 py-2 pl-10 pr-4 text-sm text-gray-800 dark:text-gray-300 placeholder-gray-500 outline-none focus-visible:ring-1 focus-visible:ring-violet-500 sm:max-w-none">
-      <div class="pointer-events-none absolute inset-0 left-4 flex items-center" aria-hidden="true">
-       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="h-4 w-4 text-gray-500" viewBox="0 0 16 16">
-        <path
-         d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-       </svg>
+<div class="md:container px-6 py-2 sm:px-3 mx-auto grid" x-data="{ bio: @entangle('bio'), wordCount: 0 }" x-init="$watch('bio', value => wordCount = countWords(value))">
+  <form wire:submit.prevent="store" class="p-6">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 text-center sm:text-start">
+      {{ __('Create Author') }}
+    </h2>
+    <div class="flex justify-center items-center pt-3">
+      <div class="flex flex-col items-center">
+        <label class="mb-1 font-medium text-sm text-gray-700 dark:text-gray-300">Avatar</label>
+        <div class="relative w-24 h-24">
+          @if ($photo)
+          <img src="{{ $photo->temporaryUrl() }}" alt="Avatar" class="w-full h-full rounded-full object-cover border-2 border-violet-600">
+          @else
+          <img src='https://via.placeholder.com/128' alt="Avatar" class="w-full h-full rounded-full object-cover border-2 border-violet-600">
+          @endif
+          <input wire:model="photo" id="photo" type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+        </div>
+        <x-input-error :messages="$errors->get('photo')" class="mt-2" />
       </div>
-     </div>
     </div>
-    <div class="flex justify-end">
-     <a wire:navigate href="/blog/new-author"
-      class="bg-violet-600 inline-flex my-2 mr-2 px-2 py-2 text-sm font-medium leading-5 text-white rounded-lg focus:outline-none"
-      aria-label="Delete">
-      <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-       <path fill-rule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-        clip-rule="evenodd"></path>
-      </svg>
-      <span class=" ml-1">New author</span>
-     </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 mt-5 gap-5">
+      <div>
+        <x-input-label for="name" :value="__('Name')" :sup="__('*')" />
+        <x-text-input wire:model="name" id="name" type="text" class="mt-1 flex w-full placeholder:text-sm" placeholder="{{ __('Name') }}" wire:model.blur="name" />
+        <x-input-error :messages="$errors->get('name')" class="mt-2" />
+      </div>
+      <div>
+        <x-input-label for="email" :value="__('Email address')" :sup="__('*')" />
+        <x-text-input wire:model="email" id="email" type="email" class="mt-1 flex w-full placeholder:text-sm" placeholder="{{ __('example@email.com') }}" wire:model.blur="email" />
+        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+      </div>
     </div>
-   </div>
-   <div class="mx-auto py-1 sm:py-4 sm:px-4 lg:px-8">
-    <div class="grid grid-cols-1 gap-6">
-     <!-- Table -->
 
-     <!-- EndTable -->
+    <div class="mt-6">
+      <x-input-label for="bio" :value="__('Biografi')" :sup="__('*')" />
+      <div wire:ignore class="focus:ring focus:ring-violet-600">
+        <textarea wire:model="bio" name="bio" id="editor" placeholder="{{ __('Type your bio') }}" class="h-28 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md shadow-sm">{{ $bio }}</textarea>
+      </div>
+      <div wire:ignore id="word-count" class="font-medium text-sm text-gray-700 dark:text-gray-300"></div>
+      <p>Jumlah kata Alpine: <span x-text="wordCount"></span></p>
+      <x-input-error :messages="$errors->get('bio')" class="mt-2" />
     </div>
-   </div>
-  </div>
- </div>
- <!-- Toaster start -->
 
- <!-- Toaster end -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 mt-5 gap-5">
+      <div>
+        <x-input-label for="facebook_link" :value="__('Facebook link')" />
+        <x-text-input wire:model="facebook_link" id="facebook_link" type="url" wire:model.blur="facebook_link" class="mt-1 flex w-full placeholder:text-sm" placeholder="{{ __('https://www.facebook.com/example') }}" />
+        <x-input-error :messages="$errors->get('facebook_link')" class="mt-2" />
+      </div>
+      <div>
+        <x-input-label for="instagram_link" :value="__('Instagram link')" />
+        <x-text-input wire:model="instagram_link" id="instagram_link" type="url" wire:model.blur="instagram_link" class="mt-1 flex w-full placeholder:text-sm" placeholder="{{ __('https://www.instagram.com/example') }}" />
+        <x-input-error :messages="$errors->get('instagram_link')" class="mt-2" />
+      </div>
+      <div>
+        <x-input-label for="x_link" :value="__('X link')" />
+        <x-text-input wire:model="x_link" id="x_link" type="url" wire:model.blur="x_link" class="mt-1 flex w-full placeholder:text-sm" placeholder="{{ __('https://x.com/example') }}" />
+        <x-input-error :messages="$errors->get('x_link')" class="mt-2" />
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-center sm:justify-end">
+      <x-backend-component.save-button>
+        {{ __('Save') }}
+      </x-backend-component.save-button>
+
+      <x-backend-component.cancel-button x-on:click="$dispatch('close')" class="ms-3">
+        {{ __('Cancel') }}
+      </x-backend-component.cancel-button>
+    </div>
+  </form>
 </div>
+<script>
+  function countWords(str) {
+    // Mengubah entitas HTML menjadi karakter biasa
+    const decodedStr = str.replace(/&nbsp;/g, ' ');
+    // Menghapus tag HTML
+    const cleanStr = decodedStr.replace(/<[^>]*>/g, ' ');
+    // Menghapus spasi berlebih dan newline
+    const normalizedStr = cleanStr.replace(/\s+/g, ' ').trim();
+    // Menghitung kata yang tidak kosong
+    return normalizedStr ? normalizedStr.split(' ').filter(word => word.length > 0).length : 0;
+  }
+</script>
+@script
+<script>
+  CKEDITOR.ClassicEditor.create(document.getElementById("editor"), {
+      toolbar: {
+        items: ['selectAll', 'bold', 'italic', 'underline', 'strikethrough', 'alignment', 'removeFormat', 'bulletedList',
+          'numberedList',
+          'todoList', 'outdent', 'indent', 'fontColor', 'highlight', 'specialCharacters', 'link', 'undo',
+          'redo',
+        ],
+        shouldNotGroupWhenFull: true
+      },
+      indentBlock: {
+        offset: 17,
+        unit: 'px'
+      },
+      list: {
+        properties: {
+          styles: true,
+          startIndex: true,
+          reversed: true
+        }
+      },
+      placeholder: 'Type your biografi',
+      htmlSupport: {
+        allow: [{
+          name: /.*/,
+          attributes: true,
+          classes: true,
+          styles: true
+        }]
+      },
+      htmlEmbed: {
+        showPreviews: true
+      },
+      link: {
+        decorators: {
+          addTargetToExternalLinks: true,
+          defaultProtocol: 'https://',
+        }
+      },
+      removePlugins: [
+        // 'ExportPdf',
+        // 'ExportWord',
+        'CKBox',
+        'CKFinder',
+        'EasyImage',
+        // 'Base64UploadAdapter',
+        'RealTimeCollaborativeComments',
+        'RealTimeCollaborativeTrackChanges',
+        'RealTimeCollaborativeRevisionHistory',
+        'PresenceList',
+        'Comments',
+        'TrackChanges',
+        'TrackChangesData',
+        'RevisionHistory',
+        'Pagination',
+        'WProofreader',
+        'MathType'
+      ]
+
+    })
+    .then(editor => {
+      const wordCountPlugin = editor.plugins.get('WordCount');
+      const wordCountWrapper = document.getElementById('word-count');
+
+      wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
+      editor.model.document.on('change:data', () => {
+        //  console.log(editor.getData());
+        $wire.set('bio', editor.getData());
+      });
+    })
+    .catch(error => {
+      console.error('CKEditor Error:', error);
+    });
+</script>
+@endscript

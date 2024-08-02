@@ -1,8 +1,10 @@
 <?php
 
 use App\Livewire\Blog\Archives;
-use App\Livewire\Blog\Authors;
-use App\Livewire\Blog\Categorys;
+use App\Livewire\Blog\Authors\CreateAuthors;
+use App\Livewire\Blog\Authors\Authors;
+use App\Livewire\Blog\Authors\ListAuthors;
+use App\Livewire\Blog\Categorys\Categorys;
 use App\Livewire\Blog\Drafts;
 use App\Livewire\Blog\Posts;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +26,6 @@ Route::middleware(['auth', 'verified'])->get('/blog/drafts', Drafts::class)->nam
 Route::middleware(['auth', 'verified'])->get('/blog/categorys', Categorys::class)->name('categorys');
 Route::middleware(['auth', 'verified'])->get('/blog/archives', Archives::class)->name('archives');
 Route::middleware(['auth', 'verified'])->get('/blog/authors', Authors::class)->name('authors');
+// Route::middleware(['auth', 'verified'])->get('/blog/authors', ListAuthors::class)->name('authors');
+Route::middleware(['auth', 'verified'])->get('/blog/create-authors', CreateAuthors::class)->name('create-authors');
 require __DIR__ . '/auth.php';
