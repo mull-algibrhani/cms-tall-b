@@ -7,6 +7,8 @@ use App\Rules\WordCountBio;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Storage;
+use Illuminate\Validation\Rule;
 
 class Authors extends Component
 {
@@ -32,16 +34,27 @@ class Authors extends Component
   // Definisikan aturan validasi sebagai metode
   public function rules()
   {
-    return [
-      'photo' => 'max:1024|mimes:jpg,png,jpeg,webp,jfif',
+    $rules = [
       'name' => 'required|min:3',
-      'email' => 'required|email|unique:authors',
-      //COSTUM RULES
+      'email' => [
+        'required',
+        'email',
+        Rule::unique('authors')->ignore($this->author_id),
+      ],
       'bio' => ['required', new WordCountBio(20, 100)],
       'facebook_link' => 'url:https',
       'instagram_link' => 'url:https',
       'x_link' => 'url:https',
     ];
+
+    // Validasi `photo` dalam mode create atau update jika ada file baru yang diunggah
+    if ($this->action === 'create' && $this->photo instanceof \Illuminate\Http\UploadedFile) {
+      $rules['photo'] = 'max:1024|mimes:jpg,png,jpeg,webp,jfif';
+    } elseif ($this->action === 'edit' && $this->photo instanceof \Illuminate\Http\UploadedFile) {
+      $rules['photo'] = 'max:1024|mimes:jpg,png,jpeg,webp,jfif';
+    }
+
+    return $rules;
   }
 
   protected $messages = [
@@ -65,53 +78,86 @@ class Authors extends Component
     $this->validateOnly($propertyName);
   }
 
-
-  public function store()
+  //Fungsi valiadasi form untuk mendiseble button save dan update jika form kosong atau error
+  public function getIsFormValidProperty()
   {
-    // SAVE LOGIC 1
-    // $this->validate(); // Gunakan metode rules() untuk validasi
-    // Author::create([
-    //     'photo' => $this->photo->store('images/author', 'public'),
-    //     'name' => $this->name,
-    //     'email' => $this->email,
-    //     'bio' => $this->bio,
-    //     'facebook_link' => $this->facebook_link,
-    //     'instagram_link' => $this->instagram_link,
-    //     'x_link' => $this->x_link
-    // ]);
+    return $this->name && $this->email && $this->bio && $this->getErrorBag()->isEmpty();
+  }
 
-    // SAVE LOGIC 2
-    // Cek apakah ada file photo yang diunggah
-    if ($this->photo) {
-      // Ambil ekstensi file
-      $extension = $this->photo->extension();
 
-      // Buat nama file baru
-      $filename = 'author_' . $this->name . '_' . time() . '.' . $extension;
 
-      // Simpan file dengan nama yang dimodifikasi
-      $path = $this->photo->storeAs('images/author', $filename, 'public');
-    } else {
-      // Jika tidak ada file, set filename menjadi null atau gunakan nilai default
-      $filename = null;
+  public function save()
+  {
+    // Panggil Fungsi Validasi
+    $this->validate();
+    // CREATE
+    if ($this->action === 'create') {
+      // SAVE LOGIC 2
+      // Cek apakah ada file photo yang diunggah
+      if ($this->photo) {
+        // Ambil ekstensi file
+        $extension = $this->photo->extension();
+        // Buat nama file baru
+        $filename = 'author_' . str_replace(' ', '_', $this->name) . '_' . time() . '.' . $extension;
+        // Simpan file dengan nama yang dimodifikasi
+        $path = $this->photo->storeAs('images/author', $filename, 'public');
+      } else {
+        // Jika tidak ada file, set filename menjadi null atau gunakan nilai default
+        $filename = null;
+      }
+      // Simpan data & nama file photo ke database
+      $author = new Author();
+      $author->photo = $filename;
+      $author->name = $this->name;
+      $author->email = $this->email;
+      $author->bio = $this->bio;
+      $author->facebook_link = $this->facebook_link;
+      $author->instagram_link = $this->instagram_link;
+      $author->x_link = $this->x_link;
+      $author->save();
+      // Memberikan pesan sukses
+      session()->flash('success', 'Author berhasil disimpan!');
+      $this->closeModal();
+
+      // UPDATE
+    } elseif ($this->action === 'edit') {
+      $author = Author::find($this->author_id);
+      // Cek apakah ada file foto baru yang diunggah
+      if ($this->photo instanceof \Illuminate\Http\UploadedFile) {
+        // Jika ada foto baru yang diunggah, hapus foto lama
+        Storage::delete('public/images/author/' . $author->photo);
+
+        // Ambil ekstensi file foto baru
+        $extension = $this->photo->extension();
+
+        // Buat nama file foto baru
+        $filename = 'author_' . str_replace(' ', '_', $this->name) . '_' . time() . '.' . $extension;
+
+        // Simpan file foto baru
+        $path = $this->photo->storeAs('images/author', $filename, 'public');
+      } else {
+        // Jika tidak ada foto baru, gunakan foto lama
+        $filename = $author->photo; // Menyimpan nama foto lama jika tidak ada file foto baru
+      }
+
+
+      // Update data author
+      $author->update([
+        'photo' => $filename, // Simpan nama file foto yang baru atau lama
+        'name' => $this->name,
+        'email' => $this->email,
+        'bio' => $this->bio,
+        'facebook_link' => $this->facebook_link,
+        'instagram_link' => $this->instagram_link,
+        'x_link' => $this->x_link,
+      ]);
+
+      // Memberikan pesan sukses
+      session()->flash('success', 'Author berhasil diupdate!');
+      $this->closeModal();
     }
 
-    // Simpan nama file ke database, misalnya ke user yang sedang login
-    $author = new Author();
-    $author->photo = $filename;
-    $author->name = $this->name;
-    $author->email = $this->email;
-    $author->bio = $this->bio;
-    $author->facebook_link = $this->facebook_link;
-    $author->instagram_link = $this->instagram_link;
-    $author->x_link = $this->x_link;
-    $author->save();
-    // Memberikan pesan sukses
-    session()->flash('success', 'Author berhasil disimpan!');
-    // Mengosongkan input
-    $this->reset(['photo', 'name', 'email', 'bio', 'facebook_link', 'instagram_link', 'x_link']);
-    // Redirect ke halaman lain
-    $this->redirect('/blog/authors', navigate: true);
+
 
     //TESTING DAI DAM DATA
     // $datapost = [
@@ -153,26 +199,27 @@ class Authors extends Component
     if ($action === 'edit' || $action === 'view') {
       $author = Author::findOrFail($id);
       $this->author_id = $id;
-      $this->photo = $author->photo;
       $this->name = $author->name;
       $this->email = $author->email;
       $this->bio = $author->bio;
       $this->facebook_link = $author->facebook_link;
       $this->instagram_link = $author->instagram_link;
       $this->x_link =   $author->x_link;
+      // Set photo ke nama file dari database, jika ada foto yang tersimpan
+      $this->photo = $author->photo;
     } else {
       $this->resetInputFields();
     }
-
     $this->isModalOpen = true;
   }
 
   // Fungsi close modal
   public function closeModal()
   {
-    $this->isModalOpen = false;
-    $this->resetInputFields();
-    $this->resetValidation(); // Reset validation messages
+    $this->dispatch('close-modal');  // Emit event untuk menutup modal
+    $this->isModalOpen = false;  // Menutup modal
+    $this->resetInputFields();   // Mereset field inputan
+    $this->resetValidation();    // Mereset pesan validasi
   }
 
   // Fungsi reset input modal
@@ -191,22 +238,23 @@ class Authors extends Component
   public function getPhotoUrl()
   {
     if ($this->action === 'create') {
-      if ($this->photo) {
-        return $this->photo->temporaryUrl();
+      // Saat mode create, tampilkan foto sementara jika ada file baru yang diunggah, atau placeholder jika tidak ada
+      return $this->photo ? $this->photo->temporaryUrl() : 'https://via.placeholder.com/128';
+    }
+
+    if ($this->action === 'edit' || $this->action === 'view') {
+      // Saat mode edit atau view, cek apakah `$this->photo` adalah string (nama file dari database) atau `UploadedFile` (file baru yang diunggah)
+      if (is_string($this->photo)) {
+        return asset('storage/images/author/' . $this->photo); // Tampilkan foto lama dari penyimpanan
+      } elseif ($this->photo instanceof \Illuminate\Http\UploadedFile) {
+        return $this->photo->temporaryUrl(); // Tampilkan URL sementara untuk file baru
       } else {
-        return 'https://via.placeholder.com/128';
-      }
-    } elseif ($this->action === 'edit' || $this->action === 'view') {
-      if ($this->photo && is_string($this->photo)) {
-        return asset('storage/images/author/' . $this->photo);
-      } elseif ($this->photo && !is_string($this->photo)) {
-        return $this->photo->temporaryUrl();
-      } else {
-        return $this->getPlaceholderAvatar();
+        return $this->getPlaceholderAvatar(); // Tampilkan avatar placeholder jika tidak ada foto
       }
     }
     return $this->getPlaceholderAvatar();
   }
+
   // Fungsi mengambil gambar placeholder jika photo null
   public function getPlaceholderAvatar()
   {
@@ -219,6 +267,8 @@ class Authors extends Component
   {
     $author = Author::find($id);
     if ($author) {
+      //delete image
+      Storage::delete('public/images/author/' . $author->photo);
       $author->delete();
       session()->flash('success', 'Author berhasil dihapus.');
       $this->redirect('/blog/authors', navigate: true);

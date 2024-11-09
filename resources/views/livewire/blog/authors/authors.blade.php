@@ -32,7 +32,7 @@
      </div>
     </div>
     <div class="flex justify-end">
-     <x-backend-component.button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-author')"
+     <!-- <x-backend-component.button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-author')"
       class="my-2 mr-2">
       <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
        <path fill-rule="evenodd"
@@ -40,7 +40,7 @@
         clip-rule="evenodd"></path>
       </svg>
       <span class="ml-1">{{ __('New Author') }}</span>
-     </x-backend-component.button>
+     </x-backend-component.button> -->
 
      <!-- <x-backend-component.button href="/blog/create-authors" wire:navigate class="my-2 mr-2">
       <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
@@ -193,79 +193,87 @@
  <!-- Toaster End -->
 </div>
 @script
+
 <script>
 document.addEventListener('open-modal', function() {
- CKEDITOR.ClassicEditor.create(document.getElementById("editor"), {
-   toolbar: {
-    items: ['selectAll', 'bold', 'italic', 'underline', 'strikethrough', 'alignment', 'removeFormat', 'bulletedList',
-     'numberedList',
-     'todoList', 'outdent', 'indent', 'fontColor', 'highlight', 'specialCharacters', 'link', 'undo',
-     'redo',
-    ],
-    shouldNotGroupWhenFull: true
-   },
-   indentBlock: {
-    offset: 17,
-    unit: 'px'
-   },
-   list: {
-    properties: {
-     styles: true,
-     startIndex: true,
-     reversed: true
-    }
-   },
-   placeholder: 'Type your biografi',
-   htmlSupport: {
-    allow: [{
-     name: /.*/,
-     attributes: true,
-     classes: true,
-     styles: true
-    }]
-   },
-   htmlEmbed: {
-    showPreviews: true
-   },
-   link: {
-    decorators: {
-     addTargetToExternalLinks: true,
-     defaultProtocol: 'https://',
-    }
-   },
-   removePlugins: [
-    // 'ExportPdf',
-    // 'ExportWord',
-    'CKBox',
-    'CKFinder',
-    'EasyImage',
-    // 'Base64UploadAdapter',
-    'RealTimeCollaborativeComments',
-    'RealTimeCollaborativeTrackChanges',
-    'RealTimeCollaborativeRevisionHistory',
-    'PresenceList',
-    'Comments',
-    'TrackChanges',
-    'TrackChangesData',
-    'RevisionHistory',
-    'Pagination',
-    'WProofreader',
-    'MathType'
-   ]
+ const editorElement = document.getElementById("editor");
 
-  })
-  .then(editor => {
-   const wordCountPlugin = editor.plugins.get('WordCount');
-   const wordCountWrapper = document.getElementById('word-count');
-   wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
-   editor.model.document.on('change:data', () => {
-    // console.log(editor.getData());
-    $wire.set('bio', editor.getData());
+ // Cek apakah editor sudah ada, jika sudah jangan inisialisasi lagi
+ if (editorElement && !editorElement.classList.contains('ckeditor-initialized')) {
+  CKEDITOR.ClassicEditor.create(editorElement, {
+    toolbar: {
+     items: [
+      'selectAll', 'bold', 'italic', 'underline', 'strikethrough', 'alignment', 'removeFormat',
+      'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', 'fontColor', 'highlight',
+      'specialCharacters', 'link', 'undo', 'redo',
+     ],
+     shouldNotGroupWhenFull: true
+    },
+    indentBlock: {
+     offset: 17,
+     unit: 'px'
+    },
+    list: {
+     properties: {
+      styles: true,
+      startIndex: true,
+      reversed: true
+     }
+    },
+    placeholder: 'Type your biography',
+    htmlSupport: {
+     allow: [{
+      name: /.*/,
+      attributes: true,
+      classes: true,
+      styles: true
+     }]
+    },
+    htmlEmbed: {
+     showPreviews: true
+    },
+    link: {
+     decorators: {
+      addTargetToExternalLinks: true,
+      defaultProtocol: 'https://'
+     }
+    },
+    removePlugins: [
+     // 'ExportPdf', 'ExportWord',
+     'CKBox', 'CKFinder', 'EasyImage', 'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+     'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData',
+     'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
+    ]
+   })
+   .then(editor => {
+    // Tandai elemen ini sebagai sudah terinisialisasi
+    editorElement.classList.add('ckeditor-initialized');
+
+    const wordCountPlugin = editor.plugins.get('WordCount');
+    const wordCountWrapper = document.getElementById('word-count');
+    if (wordCountWrapper) {
+     wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
+    }
+
+    editor.model.document.on('change:data', () => {
+     // Update data CKEditor ke Livewire
+     $wire.set('bio', editor.getData());
+    });
+   })
+   .catch(error => {
+    console.error('CKEditor Error:', error);
    });
-  })
-  .catch(error => {
-   console.error('CKEditor Error:', error);
-  });
+ }
 });
 </script>
+
+<script>
+document.getElementById('editor').addEventListener('keydown', function(event) {
+ if (event.key === 'Enter') {
+  event.preventDefault(); // Mencegah Enter agar tidak menambahkan baris baru atau submit
+  console.log('Tombol Enter ditekan di textarea, aksi dibatalkan.');
+ }
+});
+</script>
+
 @endscript

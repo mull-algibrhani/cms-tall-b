@@ -12,7 +12,7 @@ class Author extends Model
     /**
      * @var string
      */
-    protected $table = 'authors';
+    protected $fillable = ['name', 'email', 'photo', 'bio', 'facebook_link', 'instagram_link', 'x_link'];
 
     // /** @return HasMany<Post> */
     // public function posts(): HasMany
