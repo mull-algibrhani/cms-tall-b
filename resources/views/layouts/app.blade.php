@@ -29,13 +29,16 @@
    <main id="style-scrolbar" class="h-full overflow-y-auto">
     {{ $slot }}
    </main>
+   <!-- Toaster Start -->
+   <x-backend-component.toaster />
+   <!-- Toaster End -->
    <!-- Toaster start -->
-   @if (session()->has('success'))
+   <!-- @if (session()->has('success'))
    <x-backend-component.toaster-success />
    @endif
    @if (session()->has('error'))
    <x-backend-component.toaster-error />
-   @endif
+   @endif -->
    <!-- Toaster End -->
   </div>
  </div>

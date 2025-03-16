@@ -193,87 +193,155 @@
  <!-- Toaster End -->
 </div>
 @script
-
 <script>
+let editorInstance = null;
+
+// 🎯 Event listener untuk inisialisasi CKEditor saat modal dibuka
 document.addEventListener('open-modal', function() {
+ initializeEditor();
+});
+
+function initializeEditor() {
  const editorElement = document.getElementById("editor");
 
- // Cek apakah editor sudah ada, jika sudah jangan inisialisasi lagi
- if (editorElement && !editorElement.classList.contains('ckeditor-initialized')) {
-  CKEDITOR.ClassicEditor.create(editorElement, {
-    toolbar: {
-     items: [
-      'selectAll', 'bold', 'italic', 'underline', 'strikethrough', 'alignment', 'removeFormat',
-      'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', 'fontColor', 'highlight',
-      'specialCharacters', 'link', 'undo', 'redo',
-     ],
-     shouldNotGroupWhenFull: true
-    },
-    indentBlock: {
-     offset: 17,
-     unit: 'px'
-    },
-    list: {
-     properties: {
-      styles: true,
-      startIndex: true,
-      reversed: true
-     }
-    },
-    placeholder: 'Type your biography',
-    htmlSupport: {
-     allow: [{
-      name: /.*/,
-      attributes: true,
-      classes: true,
-      styles: true
-     }]
-    },
-    htmlEmbed: {
-     showPreviews: true
-    },
-    link: {
-     decorators: {
-      addTargetToExternalLinks: true,
-      defaultProtocol: 'https://'
-     }
-    },
-    removePlugins: [
-     // 'ExportPdf', 'ExportWord',
-     'CKBox', 'CKFinder', 'EasyImage', 'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
-     'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData',
-     'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
-    ]
-   })
-   .then(editor => {
-    // Tandai elemen ini sebagai sudah terinisialisasi
-    editorElement.classList.add('ckeditor-initialized');
+ if (!editorElement || editorElement.classList.contains('ckeditor-initialized')) {
+  return;
+ }
 
-    const wordCountPlugin = editor.plugins.get('WordCount');
-    const wordCountWrapper = document.getElementById('word-count');
-    if (wordCountWrapper) {
-     wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
+ console.log('🔧 Inisialisasi CKEditor...');
+
+ CKEDITOR.ClassicEditor.create(editorElement, {
+   toolbar: {
+    items: [
+     'selectAll', 'bold', 'italic', 'underline', 'strikethrough', 'alignment', 'removeFormat',
+     'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent', 'fontColor', 'highlight',
+     'specialCharacters', 'link', 'undo', 'redo',
+    ],
+    shouldNotGroupWhenFull: true
+   },
+   indentBlock: {
+    offset: 17,
+    unit: 'px'
+   },
+   list: {
+    properties: {
+     styles: true,
+     startIndex: true,
+     reversed: true
     }
+   },
+   placeholder: 'Type your biography',
+   htmlSupport: {
+    allow: [{
+     name: /.*/,
+     attributes: true,
+     classes: true,
+     styles: true
+    }]
+   },
+   htmlEmbed: {
+    showPreviews: true
+   },
+   link: {
+    decorators: {
+     addTargetToExternalLinks: true,
+     defaultProtocol: 'https://'
+    }
+   },
+   removePlugins: [
+    'CKBox', 'CKFinder', 'EasyImage', 'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+    'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments', 'TrackChanges', 'TrackChangesData',
+    'RevisionHistory', 'Pagination', 'WProofreader', 'MathType'
+   ]
+  })
+  .then(editor => {
+   editorInstance = editor;
+   editorElement.classList.add('ckeditor-initialized');
 
-    editor.model.document.on('change:data', () => {
-     // Update data CKEditor ke Livewire
-     $wire.set('bio', editor.getData());
-    });
+   console.log('✅ CKEditor berhasil diinisialisasi');
+
+   // 📌 Tambahkan Word Count ke dalam halaman
+   attachWordCount(editor);
+
+   // 📢 Kirim update ke Livewire saat editor kehilangan fokus
+   editor.editing.view.document.on('blur', () => {
+    const bioData = editor.getData().trim();
+
+    // console.log('📤 [BLUR] Mengirim updateBio ke Livewire:', bioData || '⚠️ Data kosong!');
+
+    if (bioData.length > 0) {
+     Livewire.dispatch('updateBio', {
+      bio: bioData
+     });
+    } else {
+     //  console.warn('⚠️ Tidak mengirim data kosong ke Livewire');
+    }
+   });
+
+  })
+  .catch(error => {
+   console.error('❌ CKEditor Error:', error);
+  });
+}
+
+// 📝 Fungsi untuk Menambahkan Word Count
+function attachWordCount(editor) {
+ if (!editor.plugins.has('WordCount')) {
+  // console.warn("⚠️ Plugin WordCount tidak tersedia!");
+  return;
+ }
+
+ const wordCountPlugin = editor.plugins.get('WordCount');
+ const wordCountWrapper = document.getElementById('word-count');
+
+ if (wordCountWrapper) {
+  wordCountWrapper.innerHTML = ''; // Bersihkan sebelum menambahkan
+  wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
+ }
+}
+
+// 🛠️ Menyisipkan kembali Word Count setelah Livewire merender ulang
+Livewire.hook('message.processed', () => {
+ setTimeout(() => {
+  if (editorInstance) {
+   attachWordCount(editorInstance);
+  }
+ }, 50); // ⏳ Beri jeda untuk memastikan elemen sudah ada
+});
+
+// 🎯 Livewire Listener: Menerima update dari Livewire
+Livewire.on('refreshEditor', (payload) => {
+ if (!payload || typeof payload.bio === 'undefined') {
+  if (!window.warnedRefreshEditor) {
+   //  console.warn('⚠️ Data bio tidak tersedia dalam refreshEditor');
+   window.warnedRefreshEditor = true;
+  }
+  return;
+ }
+
+ //  console.log('🔄 Data diterima dari Livewire:', payload);
+
+ if (editorInstance) {
+  // console.log('✍️ Memuat ulang data CKEditor:', payload.bio);
+  editorInstance.setData(payload.bio || '');
+ }
+
+ window.warnedRefreshEditor = false;
+});
+
+// 🎯 Event listener saat modal ditutup (CKEditor dihancurkan)
+document.addEventListener('close-modal', function() {
+ if (editorInstance) {
+  console.log('🛑 Menutup modal, menghancurkan CKEditor...');
+  editorInstance.destroy()
+   .then(() => {
+    console.log('✅ CKEditor dihancurkan');
+    editorInstance = null;
    })
    .catch(error => {
-    console.error('CKEditor Error:', error);
+    console.error('❌ Error saat menghancurkan CKEditor:', error);
    });
  }
 });
 </script>
-
-<script>
-document.getElementById('editor').addEventListener('keydown', function(event) {
- if (event.key === 'Enter') {
-  event.preventDefault(); // Mencegah Enter agar tidak menambahkan baris baru atau submit
-  console.log('Tombol Enter ditekan di textarea, aksi dibatalkan.');
- }
-});
-</script>
-
 @endscript

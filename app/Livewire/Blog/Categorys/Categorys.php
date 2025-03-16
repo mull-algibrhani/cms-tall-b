@@ -76,30 +76,43 @@ class Categorys extends Component
         $this->validateOnly($propertyName);
     }
 
+    //Fungsi valiadasi form untuk mendiseble button save dan update jika form kosong atau error
+    public function getIsFormValidProperty()
+    {
+        return $this->category_name && $this->getErrorBag()->isEmpty();
+    }
+
     // Logic save data dengan modal
     public function save()
     {
         // Panggil Fungsi Validasi
         $this->validate();
 
-        // CREATE
-        if ($this->action === 'create') {
-            Category::create([
-                'category_name' => $this->category_name,
-            ]);
-            // Memberikan pesan sukses
-            session()->flash('success', 'Category berhasil disimpan!');
+        try {
+            // CREATE
+            if ($this->action === 'create') {
+                Category::create([
+                    'category_name' => $this->category_name,
+                ]);
+                // Memberikan pesan sukses
+                // Dispatch event ke toaster sukses
+                $this->dispatch('showToast', type: 'success', message: 'Category berhasil disimpan!');
 
-            // UPDATE
-        } elseif ($this->action === 'edit') {
-            $category = Category::find($this->category_id);
-            $category->update([
-                'category_name' => $this->category_name,
-            ]);
-            // Memberikan pesan sukses
-            session()->flash('success', 'Category berhasil diupdate!');
+                // UPDATE
+            } elseif ($this->action === 'edit') {
+                $category = Category::find($this->category_id);
+                $category->update([
+                    'category_name' => $this->category_name,
+                ]);
+                // Dispatch event ke toaster sukses
+                $this->dispatch('showToast', type: 'success', message: 'Category berhasil diupdate!');
+            }
+
+            $this->closeModal();
+        } catch (\Throwable $th) {
+            // Jika terjadi error, tampilkan toaster error
+            $this->dispatch('showToast', type: 'error', message: 'Terjadi kesalahan!');
         }
-        $this->closeModal();
     }
 
     //Logic Delete Data
@@ -108,11 +121,11 @@ class Categorys extends Component
         $category = Category::find($id);
         if ($category) {
             $category->delete();
-            session()->flash('success', 'Category berhasil dihapus.');
-            $this->redirect('/blog/categorys', navigate: true);
+            // Kirim notifikasi sukses ke frontend
+            $this->dispatch('showToast', type: 'success', message: 'Category berhasil dihapus!');
         } else {
-            session()->flash('error', 'Category gagal dihapus.');
-            $this->redirect('/blog/categorys', navigate: true);
+            // Kirim notifikasi error ke frontend
+            $this->dispatch('showToast', type: 'error', message: 'Category gagal dihapus!');
         }
     }
 }
