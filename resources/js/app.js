@@ -1,24 +1,33 @@
 import './bootstrap';
-        
-// DARK MODE TOGGLE BUTTON
-(function() {
- const setDarkClass = () => {
-  const isDark = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia(
-   '(prefers-color-scheme: dark)').matches);
-  if (isDark) {
-   document.documentElement.classList.add('dark');
-  } else {
-   document.documentElement.classList.remove('dark');
-  }
- };
- setDarkClass();
- window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkClass);
-})();
-// END DARK MODE TOGGLE BUTTON
+
+// Menetapkan mode gelap sesuai preferensi pengguna
+function setDarkMode() {
+    const isDark = localStorage.theme === 'dark' || 
+        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    document.documentElement.classList.toggle('dark', isDark);
+}
+
+// Panggil saat halaman dimuat
+setDarkMode();
+
+// Pastikan tetap gelap setelah navigasi di Livewire
+document.addEventListener('livewire:navigated', setDarkMode);
+
+// Hapus class nprogress-busy setelah Livewire memproses request
+Livewire.hook("message.processed", () => {
+    document.documentElement.classList.remove("nprogress-busy");
+});
+
+
 // OPEN MENU SIDEBAR
 document.addEventListener('alpine:init', () => {
- Alpine.store('openSide', true)
-})
+    Alpine.store('openSide', true);
+});
+
+
+
+
 // END OPEN MENU SIDEBAR
 
 // function avatarComponent() {

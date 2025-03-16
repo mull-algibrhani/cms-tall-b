@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data x-init="$nextTick(() => {
+    if (localStorage.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+})">
+
 
 <head>
  <meta charset="utf-8">
@@ -31,14 +36,6 @@
    </main>
    <!-- Toaster Start -->
    <x-backend-component.toaster />
-   <!-- Toaster End -->
-   <!-- Toaster start -->
-   <!-- @if (session()->has('success'))
-   <x-backend-component.toaster-success />
-   @endif
-   @if (session()->has('error'))
-   <x-backend-component.toaster-error />
-   @endif -->
    <!-- Toaster End -->
   </div>
  </div>
