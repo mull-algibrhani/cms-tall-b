@@ -695,3 +695,52 @@ versi laravel
     }
   });
 </script>
+
+PASS Tests\Unit\ExampleTest
+✓ that true is true 0.11s
+
+FAIL Tests\Feature\Auth\AuthenticationTest
+⨯ login screen can be rendered 4.37s
+⨯ users can authenticate using the login screen 1.98s
+⨯ users can not authenticate with invalid password 1.61s
+⨯ navigation menu can be rendered 1.79s
+⨯ users can logout 1.46s
+
+PASS Tests\Feature\Auth\EmailVerificationTest
+✓ email verification screen can be rendered 0.24s
+✓ email can be verified 0.32s
+✓ email is not verified with invalid hash 0.23s
+
+FAIL Tests\Feature\Auth\PasswordConfirmationTest
+⨯ confirm password screen can be rendered 1.53s
+⨯ password can be confirmed 1.52s
+⨯ password is not confirmed with invalid password 1.52s
+
+FAIL Tests\Feature\Auth\PasswordResetTest
+⨯ reset password link screen can be rendered 1.64s
+⨯ reset password link can be requested 1.67s
+⨯ reset password screen can be rendered 1.68s
+⨯ password can be reset with valid token 1.41s
+
+FAIL Tests\Feature\Auth\PasswordUpdateTest
+⨯ password can be updated 1.20s
+⨯ correct password must be provided to update password 1.19s
+
+FAIL Tests\Feature\Auth\RegistrationTest
+⨯ registration screen can be rendered 1.65s
+⨯ new users can register 1.44s
+
+PASS Tests\Feature\ExampleTest
+✓ it returns a successful response 0.25s
+
+FAIL Tests\Feature\ProfileTest
+⨯ profile page is displayed 8.17s
+⨯ profile information can be updated 1.31s
+⨯ email verification status is unchanged when the email ad… 1.14s
+⨯ user can delete their account 1.22s
+⨯ correct password must be provided to delete account 1.14s
+
+Tests: 21 failed, 5 passed (12 assertions)
+Duration: 43.35s
+
+Laravel Framework 11.44.2
