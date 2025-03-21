@@ -218,13 +218,15 @@ class Authors extends Component
       $this->resetInputFields();
     }
     $this->isModalOpen = true;
+    $this->dispatch('open-modal'); // Trigger event agar Alpine.js membuka modal
   }
 
   public function mount()
   {
     // \Log::info('🚀 mount() dipanggil, bio saat ini: ', ['bio' => $this->bio]);
     // Memastikan bahwa CKEditor hanya diinisialisasi sekali ketika komponen dimuat
-    $this->dispatch('open-modal');
+    // $this->dispatch('open-modal');
+    $this->isModalOpen = false;
     // dd('Event initialize-ckeditor dipancarkan');
   }
 

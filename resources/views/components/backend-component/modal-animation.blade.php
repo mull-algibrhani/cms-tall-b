@@ -16,8 +16,12 @@ $maxWidth = [
 ][$maxWidth];
 @endphp
 
-<div x-data="{ isOpen: @entangle('isModalOpen') }" x-cloak x-show="isOpen" x-transition.opacity.duration.200ms
- x-trap.inert.noscroll="isOpen" @keydown.esc.window="isOpen = false"
+<div x-data="{ isOpen: false }" x-cloak x-show="isOpen" x-transition.opacity.duration.200ms
+ x-trap.inert.noscroll="isOpen" @keydown.esc.window="isOpen = false" @open-modal.window="isOpen = true; $nextTick(() => { 
+         if(document.getElementById('editor')) {
+             initializeEditor();
+         }
+     })" @close-modal.window="isOpen = false"
  class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50 bg-black/20 backdrop-blur-md items-center justify-center"
  role="dialog" aria-modal="true" aria-labelledby="ModalCrud" id="style-scrolbar">
  <div x-show="isOpen" x-transition:enter="transition ease-out duration-200 delay-100 motion-reduce:transition-opacity"

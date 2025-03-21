@@ -41,12 +41,20 @@ class Categorys extends Component
         }
 
         $this->isModalOpen = true;
+        $this->dispatch('open-modal'); // Trigger event agar Alpine.js membuka modal
+    }
+
+    public function mount()
+    {
+
+        $this->isModalOpen = false;
     }
 
     // Fungsi close modal
     public function closeModal()
     {
-        $this->isModalOpen = false;
+        $this->dispatch('close-modal');  // Emit event untuk menutup modal
+        $this->isModalOpen = false;  // Menutup modal
         $this->resetInputFields();
         $this->resetValidation(); // Reset validation messages
     }

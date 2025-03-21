@@ -31,26 +31,8 @@
       </div>
      </div>
     </div>
+
     <div class="flex justify-end">
-     <!-- <x-backend-component.button x-data="" x-on:click.prevent="$dispatch('open-modal', 'create-author')"
-      class="my-2 mr-2">
-      <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-       <path fill-rule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-        clip-rule="evenodd"></path>
-      </svg>
-      <span class="ml-1">{{ __('New Author') }}</span>
-     </x-backend-component.button> -->
-
-     <!-- <x-backend-component.button href="/blog/create-authors" wire:navigate class="my-2 mr-2">
-      <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-       <path fill-rule="evenodd"
-        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-        clip-rule="evenodd"></path>
-      </svg>
-      <span class="ml-1">{{ __('New Author') }}</span>
-     </x-backend-component.button> -->
-
      <!-- Button Open Modal -->
      <div class="flex justify-end">
       <x-backend-component.button wire:click.prevent="openModal('create')" class="my-2 mr-2">
@@ -173,35 +155,24 @@
   </div>
  </div>
  <!-- Modal Form -->
- <x-backend-component.modal-animation>
-  @if ($isModalOpen)
+ @if ($isModalOpen)
+ <x-backend-component.modal-animation wire:key="modal-crud-authors">
   <x-backend-component.modal-crud-authors :action="$action" :photo="$photo" :name="$name" :bio="$bio"
    :isModalOpen="$isModalOpen" />
-  @endif
  </x-backend-component.modal-animation>
- <!-- End Modal Form -->
  <!-- Modal Konfirmasi -->
- <x-backend-component.modal-confirm />
+ <x-backend-component.modal-confirm wire:key="modal-confim-authors" />
  <!-- End Modal Konfirmasi -->
- <!-- Toaster start -->
- @if (session()->has('success'))
- <x-backend-component.toaster-success />
  @endif
- @if (session()->has('error'))
- <x-backend-component.toaster-error />
- @endif
- <!-- Toaster End -->
+ <!-- End Modal Form -->
+
 </div>
 @script
 <script>
 let editorInstance = null;
 
-// 🎯 Event listener untuk inisialisasi CKEditor saat modal dibuka
-document.addEventListener('open-modal', function() {
- initializeEditor();
-});
-
-function initializeEditor() {
+// Pastikan fungsi initializeEditor tersedia di global scope
+window.initializeEditor = function() {
  const editorElement = document.getElementById("editor");
 
  if (!editorElement || editorElement.classList.contains('ckeditor-initialized')) {
@@ -260,76 +231,68 @@ function initializeEditor() {
 
    console.log('✅ CKEditor berhasil diinisialisasi');
 
-   // 📌 Tambahkan Word Count ke dalam halaman
+   // Tambahkan Word Count ke dalam halaman
    attachWordCount(editor);
 
-   // 📢 Kirim update ke Livewire saat editor kehilangan fokus
+   // Kirim update ke Livewire saat editor kehilangan fokus
    editor.editing.view.document.on('blur', () => {
     const bioData = editor.getData().trim();
-
-    // console.log('📤 [BLUR] Mengirim updateBio ke Livewire:', bioData || '⚠️ Data kosong!');
-
     if (bioData.length > 0) {
      Livewire.dispatch('updateBio', {
       bio: bioData
      });
-    } else {
-     //  console.warn('⚠️ Tidak mengirim data kosong ke Livewire');
     }
    });
-
   })
   .catch(error => {
    console.error('❌ CKEditor Error:', error);
   });
-}
+};
 
-// 📝 Fungsi untuk Menambahkan Word Count
+// Event listener untuk inisialisasi CKEditor saat modal dibuka
+document.addEventListener('open-modal', function() {
+ // Cek apakah fungsi initializeEditor tersedia dan apakah elemen dengan id 'editor' ada
+ if (typeof window.initializeEditor === 'function' && document.getElementById('editor')) {
+  // Gunakan $nextTick jika modal dibuka melalui Alpine (misalnya, dipanggil setelah render)
+  setTimeout(() => {
+   window.initializeEditor();
+  }, 0);
+ }
+});
+
+// Fungsi untuk menambahkan word count
 function attachWordCount(editor) {
  if (!editor.plugins.has('WordCount')) {
-  // console.warn("⚠️ Plugin WordCount tidak tersedia!");
   return;
  }
-
  const wordCountPlugin = editor.plugins.get('WordCount');
  const wordCountWrapper = document.getElementById('word-count');
-
  if (wordCountWrapper) {
-  wordCountWrapper.innerHTML = ''; // Bersihkan sebelum menambahkan
+  wordCountWrapper.innerHTML = '';
   wordCountWrapper.appendChild(wordCountPlugin.wordCountContainer);
  }
 }
 
-// 🛠️ Menyisipkan kembali Word Count setelah Livewire merender ulang
+// Menyisipkan kembali Word Count setelah Livewire merender ulang
 Livewire.hook('message.processed', () => {
  setTimeout(() => {
   if (editorInstance) {
    attachWordCount(editorInstance);
   }
- }, 50); // ⏳ Beri jeda untuk memastikan elemen sudah ada
+ }, 50);
 });
 
-// 🎯 Livewire Listener: Menerima update dari Livewire
+// Livewire Listener: Menerima update dari Livewire
 Livewire.on('refreshEditor', (payload) => {
  if (!payload || typeof payload.bio === 'undefined') {
-  if (!window.warnedRefreshEditor) {
-   //  console.warn('⚠️ Data bio tidak tersedia dalam refreshEditor');
-   window.warnedRefreshEditor = true;
-  }
   return;
  }
-
- //  console.log('🔄 Data diterima dari Livewire:', payload);
-
  if (editorInstance) {
-  // console.log('✍️ Memuat ulang data CKEditor:', payload.bio);
   editorInstance.setData(payload.bio || '');
  }
-
- window.warnedRefreshEditor = false;
 });
 
-// 🎯 Event listener saat modal ditutup (CKEditor dihancurkan)
+// Event listener saat modal ditutup (menghancurkan CKEditor)
 document.addEventListener('close-modal', function() {
  if (editorInstance) {
   console.log('🛑 Menutup modal, menghancurkan CKEditor...');
@@ -344,4 +307,5 @@ document.addEventListener('close-modal', function() {
  }
 });
 </script>
+
 @endscript
